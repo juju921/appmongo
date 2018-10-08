@@ -12,6 +12,7 @@ const expressValidator = require('express-validator');
 const bodyParser = require('body-parser');
 const Schema = mongoose.Schema;
 require('./handlers/passport');
+require('babel-polyfill');
 const appPort= 3000;
 
 mongoose.connect('mongodb://localhost:27017/cafe',{useNewUrlParser: true}).catch((err)=>{
