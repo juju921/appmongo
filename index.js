@@ -12,7 +12,6 @@ const expressValidator = require('express-validator');
 const bodyParser = require('body-parser');
 const Schema = mongoose.Schema;
 require('./handlers/passport');
-require('babel-polyfill');
 const appPort= 3000;
 
 mongoose.connect('mongodb://localhost:27017/cafe',{useNewUrlParser: true}).catch((err)=>{
@@ -46,6 +45,9 @@ require('./handlers/passport');
 app.use(passport.initialize());
 app.use(passport.session());
 
+
+// inserting an SVG
+exports.icon = (name) => fs.readFileSync(`./public/images/icons/${name}.svg`);
 
 app.use('/',routes);
 // On dit à express d'utiliser le chemin afin d'afficher les vues
