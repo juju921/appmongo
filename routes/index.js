@@ -11,21 +11,23 @@ const logins = require('../handlers/passport');
 
 
 
-router.get('/', storeController.getStores);
-router.get('/stores', storeController.getStores);
-router.get('/add',userController.isLoggedIn,  storeController.addStore);
+router.get('/',  catchErrors(storeController.getStores));
+router.get('/stores',  catchErrors(storeController.getStores));
+router.get('/add',authController.isLoggedIn,  storeController.addStore);
+router.get('/stores/page/:page', catchErrors(storeController.getStores));
+router.get('/store/:slug', catchErrors(storeController.getStoreBySlug));
 router.post('/add', storeController.createStore);
 router.get('/stores/:id', storeController.editStore);
 
 
 
-	router.get('/login', userController.loginForm);
+router.get('/login', userController.loginForm);
 
 
-	passport.use(new LocalStrategy({
-		usernameField: 'email',
-		passwordField: 'password',
-		passReqToCallback : true
+passport.use(new LocalStrategy({
+	usernameField: 'email',
+	passwordField: 'password',
+	passReqToCallback : true
 	},
 		function(req, email, password, done) {
 			getUserByEmail(email, function(err, user) {
@@ -36,8 +38,7 @@ router.get('/stores/:id', storeController.editStore);
 				comparePassword(password, user.password, function(err, isMatch) {
 					if (err) { return done(err); }
 					if(isMatch){
-						
-							return done(null, user, req.flash('success', 'You have successfully logged in!!'));
+							return done(null, user, req.flash('success', 'Vous êtes connecté ! ' + user.name));
 					}
 					else{
 							return done(null, false, req.flash('error', 'Mot de passe incorect'));
@@ -45,50 +46,61 @@ router.get('/stores/:id', storeController.editStore);
 				});
 			});
 		}
-	));
+));
 
-	passport.serializeUser(function(user, done) {
-		done(null, user._id);
+passport.serializeUser(function(user, done) {
+	done(null, user._id);
+});
+
+passport.deserializeUser(function(id, done) {
+	getUserById(id, function(err, user) {
+		done(err, user);
 	});
-
-	passport.deserializeUser(function(id, done) {
-		getUserById(id, function(err, user) {
-			done(err, user);
-		});
-	});
-
-	router.get('/logout', userController.logout);
+});
 
 
 
+router.post('/login', passport.authenticate('local', {
+	failureRedirect: '/', failureFlash: true
+	}), 
+	function(req, res){
+		res.redirect('/');
+	}
+);
 
 
 
+// function(req, res, next){
+// 	passport.authenticate('local', {
+// 		successRedirect:'/',
+// 		failureFlash: 'Failed Login!',
+// 		badRequestMessage: 'Your message you want to change.', 
+// 		failureRedirect:'/login',
+// 	})(req, res, next);
+
+// });
+
+
+// passport.authenticate('local', {
+// 		successRedirect:'/',
+// 		failureFlash: 'Failed Login!',
+// 		badRequestMessage: 'Your message you want to change.', 
+// 		failureRedirect:'/login',
+// }));
 
 
 
+router.get('/register', userController.registerForm);
 
-
-	router.post('/login', passport.authenticate('local', {
-			successRedirect:'/',
-			failureFlash: 'Failed Login!',
-			badRequestMessage: 'Your message you want to change.', 
-			failureRedirect:'/login',
-	}));
-
-
-
-
-
-	router.get('/register', userController.registerForm);
-
-
-	router.post('/register',
+router.post('/register',
 	userController.validateRegister,
 	//authController.login
-	);
+);
+
+
+router.get('/logout', userController.logout);
 
 
 
 
-	module.exports = router;
+module.exports = router;

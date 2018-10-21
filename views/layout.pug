@@ -23,13 +23,13 @@ html
               .search__results
           .nav__section.nav__section--user
             if user
-              li.nav__item: a.nav__link(href="/hearts", class=('nav__link'? 'nav__link--active' : ''))                              
-              li.nav__item: a.nav__link(href="/logout", class=('nav__link'? 'nav__link--active' : ''))                
-              li.nav__item: a.nav__link(href="/account", class=('nav__link' ? 'nav__link--active' : ''))
-
+              li.nav__item: a.nav__link(href="/hearts") coup de coeur
+              li.nav__item: a.nav__link(href="/logout") Logout
+              li.nav__item: a.nav__link(href="/account") mon compte
             else
-              li.nav__item: a.nav__link(href ="/register", class=('nav__link' ? 'nav__link--active' : '')) Register
-              li.nav__item: a.nav__link(href="/login", class=( 'nav__link--active' )) Log In
+              li.nav__item: a.nav__link(href="/register") Register
+              li.nav__item: a.nav__link(href="/login") Log In 
+
 
     block messages
       if locals.flashes
@@ -45,4 +45,7 @@ html
       block content
         p This is the default!
 
-    block scripts
+    block scripts 
+      script(src='https://code.jquery.com/jquery-3.3.1.min.js')
+      script(src=`https://maps.googleapis.com/maps/api/js?key=AIzaSyCCN-Y00513Sxzsp8MhZkiwILwdpog_PWI&libraries=places`)
+      script(src="/js/app.js")

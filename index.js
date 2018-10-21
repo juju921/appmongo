@@ -7,7 +7,7 @@ const session = require('express-session')
 const mongoose = require('mongoose');
 const routes = require('./routes/index');
 const flash = require('connect-flash');
-const promisify = require('es6-promisify');
+const helpers = require('./helpers');
 const expressValidator = require('express-validator');
 const bodyParser = require('body-parser');
 const Schema = mongoose.Schema;
@@ -27,23 +27,28 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(passport.initialize());
 
 app.use(flash());
-app.use(session({ cookie: { maxAge: 60000 }, 
-    secret: 'woot',
-    resave: false, 
-    saveUninitialized: false
+app.use(session({
+	secret: 'keyboard cat',
+	resave: false,
+	saveUninitialized: true,
 }));
+
+require('./handlers/passport');
+app.use(passport.initialize());
+app.use(passport.session());
+
+
 
 
 app.use((req, res, next) => {
         res.locals.flashes = req.flash();
+        res.locals.h = helpers;
+        res.locals.user = req.user || null;
         next();
 });    
 
 app.use(expressValidator());
 // Passport Config
-require('./handlers/passport');
-app.use(passport.initialize());
-app.use(passport.session());
 
 
 // inserting an SVG
