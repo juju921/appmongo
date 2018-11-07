@@ -18,13 +18,13 @@
   
   
   
+  
   exports.validateRegister = (req, res, next) => {
     const name = req.body.name;
     const email = req.body.email;
     const password = req.body.password;
-    
     req.sanitizeBody('name');
-    req.checkBody('name', 'You must supply a name!').notEmpty();
+req.checkBody('name', 'You must supply a name!').notEmpty();
     req.checkBody('email', 'That Email is not valid!').isEmail();
     req.sanitizeBody('email').normalizeEmail({
       gmail_remove_dots: false,
@@ -37,12 +37,12 @@
     
     const errors = req.validationErrors();
     
-    
     if(errors){
       req.flash('error', errors.map(err => err.msg));
       res.render('register', { title: 'Register', body: req.body, flashes: req.flash() });
       return; 
     } else {
+      
       let newUser = new User({
         name:name,
         email:email,
@@ -66,7 +66,8 @@
         });
       });
     }
-  };
+};
+
   
   
 exports.isLoggedIn = (req, res, next) => {

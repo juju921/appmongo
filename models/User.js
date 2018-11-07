@@ -39,8 +39,8 @@
   userSchema.plugin(passportLocalMongoose, { usernameField: 'email' });
 
 
-   const User =  mongoose.model('User', userSchema);
-
+  const User =  module.exports  =  mongoose.model('User', userSchema);
+  //const User =
 
   
   module.exports.getUserByEmail = (email, callback) => {

@@ -1,106 +1,97 @@
 const mongoose = require('mongoose');
-const  Store = require('../models/Store');
+const Store = require('../models/Store');
 const multer = require('multer');
-const jimp = require('jimp');
+const Jimp  = require('jimp');
 const uuid = require('uuid');
 
-
-
 const multerOptions = {
-    storage: multer.memoryStorage(),
-    fileFilter(req, file, next) {
-        const isPhoto = file.mimetype.startsWith('image/');
+  storage: multer.memoryStorage(),
+  fileFilter(req, file, next) {
+    const isPhoto = file.mimetype('image/');
     if(isPhoto) {
-        next(null, true);
+      next(null, true);
     } else {
-        next({ message: 'That filetype isn\'t allowed!' }, false);
+      next({ message: 'That filetype isn\'t allowed!' }, false);
     }
-    }
+  }
 };
 
-
-
-
 exports.homePage = (req, res) => {
-    res.render('index');
-    };
+  res.render('index');
+};
 
 exports.addStore = (req, res) => {
-    res.render('editStore', { title: 'Ajouter une boutique' });
+  res.render('editStore', { title: 'Add Store' });
 };
 
 exports.upload = multer(multerOptions).single('photo');
-exports.resize = async (req, res, next) => {
-    // check if there is no new file to resize
-    if (!req.file) {
-      next(); // skip to the next middleware
-      return;
-    }
-    const extension = req.file.mimetype.split('/')[1];
-    req.body.photo = `${uuid.v4()}.${extension}`;
-    // now we resize
-    const photo = await jimp.read(req.file.buffer);
-    await photo.resize(800, jimp.AUTO);
-    await photo.write(`./public/uploads/${req.body.photo}`);
-    // once we have written the photo to our filesystem, keep going!
-    next();
+
+exports.resize =  (req, res, next) => {
+  // check if there is no new file to resize
+  if (!req.file) {
+    next(); // skip to the next middleware
+    return;
+  }
+  const extension = req.file.mimetype.split('/')[1];
+  req.body.photo = `${uuid.v4()}.${extension}`;
+  // now we resize
+  const photo =  Jimp.read(req.file)
+  .then(photo => {
+    photo.resize(800, Jimp.AUTO);
+    photo.write(`./public/uploads/${req.body.photo}`);
+  })
+  .catch(err => {
+    console.error(err);
+  });
+  Console.log(req.file);
+  next();
 };
 
-exports.createStore = (req, res) => {
+exports.createStore =  (req, res) => {
     const store = new Store(req.body);
     store.save();
-    req.flash('success', `Créé avec succès   ${store.name}`);
-    res.redirect('/');
-    
+    //  res.json(req.body);
+    req.flash('success', `Successfully Created ${store.name}. Care to leave a review?`);
+    res.redirect(`/`);
 };
 
-exports.getStores = (req, res) => {
-    const stores = Store.find();
-    console.log(stores);
+exports.getStores = async (req, res) => {
+    // 1. Query the database for a list of all stores
+    const stores = await Store.find();
     res.render('stores', { title: 'Stores', stores });
 };
 
 
-exports.editStore  = (req, res) => {
-        const store =  Store.findOne({ _id: req.params.id });
-        res.render('editStore', { title: `Edit ${store.name}`, store });
-        next();
-};
 
-exports.getStoreBySlug = async (req, res, next) => {
-        if (!store) return next();
-        res.render('store', { store, title: store.name });
-};
-const confirmOwner = (store, user) => {
-    if (!store.author.equals(user._id)) {
-      throw Error('You must own a store in order to edit it!');
-    }
+exports.editStore = async (req, res) => {
+    // 1. Find the store given the ID
+    const store = await Store.findOne({ _id: req.params.id });
+    // 2. confirm they are the owner of the store
+    // TODO
+    // 3. Render out the edit form so the user can update their store
+    res.render('editStore', { title: `Edit ${store.name}`, store });
   };
+  
 
-exports.getStores = async (req, res) => {
-        const page = req.params.page || 1;
-        const limit = 4;
-        const skip = (page * limit) - limit;
-      
-        // 1. Query the database for a list of all stores
-        const storesPromise = Store
-          .find()
-          .skip(skip)
-          .limit(limit)
-          .sort({ created: 'desc' });
-      
-        const countPromise = Store.count();
-      
-        const [stores, count] = await Promise.all([storesPromise, countPromise]);
-        const pages = Math.ceil(count / limit);
-        if (!stores.length && skip) {
-        req.flash('info', `Hey! You asked for page ${page}. But that doesn't exist. So I put you on page ${pages}`);
-        res.redirect(`/stores/page/${pages}`);
-        return;
-        }
 
-        res.render('stores', { title: 'Stores', stores, page, pages, count });
-};
+exports.updateStore = async (req, res) => {
+    // set the location data to be a point
+    req.body.location.type = 'Point';
+    // find and update the store
+    const store = await Store.findOneAndUpdate({ _id: req.params.id }, req.body, {
+      new: true, // return the new store instead of the old one
+      runValidators: true
+    }).exec();
+    req.flash('success', `Successfully updated <strong>${store.name}</strong>. <a href="/stores/${store.slug}">View Store →</a>`);
+    res.redirect(`/stores/${store._id}/edit`);
+    // Redriect them the store and tell them it worked
+  };
+  
+  exports.getStoreBySlug = async (req, res, next) => {
+    const store = await Store.findOne({ slug: req.params.slug });
+    if (!store) return next();
+    res.render('store', { store, title: store.name });
+  };
 
 
 

@@ -10,7 +10,6 @@ const flash = require('connect-flash');
 const helpers = require('./helpers');
 const expressValidator = require('express-validator');
 const bodyParser = require('body-parser');
-const Schema = mongoose.Schema;
 require('./handlers/passport');
 const appPort= 3000;
 

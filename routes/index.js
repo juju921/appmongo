@@ -10,14 +10,25 @@ const LocalStrategy = require('passport-local').Strategy;
 const logins = require('../handlers/passport');
 
 
-
 router.get('/',  catchErrors(storeController.getStores));
 router.get('/stores',  catchErrors(storeController.getStores));
 router.get('/add',authController.isLoggedIn,  storeController.addStore);
 router.get('/stores/page/:page', catchErrors(storeController.getStores));
-router.get('/store/:slug', catchErrors(storeController.getStoreBySlug));
 router.post('/add', storeController.createStore);
-router.get('/stores/:id', storeController.editStore);
+
+
+
+router.post('/add',
+	storeController.upload,
+	catchErrors(storeController.resize),
+	catchErrors(storeController.createStore)
+);
+
+router.post('/add/:id',
+	storeController.upload,
+	catchErrors(storeController.resize),
+	catchErrors(storeController.updateStore)
+);
 
 
 
@@ -69,27 +80,6 @@ router.post('/login', passport.authenticate('local', {
 );
 
 
-
-// function(req, res, next){
-// 	passport.authenticate('local', {
-// 		successRedirect:'/',
-// 		failureFlash: 'Failed Login!',
-// 		badRequestMessage: 'Your message you want to change.', 
-// 		failureRedirect:'/login',
-// 	})(req, res, next);
-
-// });
-
-
-// passport.authenticate('local', {
-// 		successRedirect:'/',
-// 		failureFlash: 'Failed Login!',
-// 		badRequestMessage: 'Your message you want to change.', 
-// 		failureRedirect:'/login',
-// }));
-
-
-
 router.get('/register', userController.registerForm);
 
 router.post('/register',
@@ -101,6 +91,8 @@ router.post('/register',
 router.get('/logout', userController.logout);
 
 
+router.get('/stores/:id/edit', catchErrors(storeController.editStore));
 
+router.get('/store/:slug', catchErrors(storeController.getStoreBySlug));
 
 module.exports = router;
